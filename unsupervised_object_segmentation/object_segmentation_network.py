@@ -3,6 +3,8 @@
 import numpy as np
 import tensorflow as tf
 from a2cutils import *
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
 class ObjectSegmentationBase(object):
     def __init__(self, frames, target_frame=None, source_frame=None, actions=None, embedding=None):

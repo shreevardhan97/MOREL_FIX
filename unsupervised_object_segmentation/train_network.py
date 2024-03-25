@@ -26,8 +26,10 @@ import glob
 import numpy as np
 import tensorflow as tf
 import copy
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
-_opencv_path = '/home/v5goel/test_env/env/lib/python3.5/site-packages/'
+_opencv_path = '/home/codespace/.python/current/lib/python3.10/site-packages/cv2'
 if os.path.exists(_opencv_path):
     sys.path.insert(0, _opencv_path)
 
@@ -49,6 +51,7 @@ batch_generator = BatchGenerator(hparams=copy.deepcopy(hparams))
 # Setup for saving checkpoints.
 saver = tf.train.Saver(max_to_keep=3)
 ckpt_dir = os.path.join(hparams['base_dir'], 'ckpts', hparams['experiment_name'])
+print("ckpt_dir: ",ckpt_dir)
 try: os.makedirs(ckpt_dir)
 except: pass
 
@@ -72,10 +75,11 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 
     if hparams.get('restore_from_ckpt_path'):
         saver = tf.train.Saver(max_to_keep=3)
-        restore_dir = hparams['restore_from_ckpt_path']
-        ckpt_path = tf.train.latest_checkpoint(restore_dir)
-        assert ckpt_path is not None
-        saver.restore(sess, ckpt_path)
+        # restore_dir = hparams['restore_from_ckpt_path']
+        # ckpt_path = tf.train.latest_checkpoint(restore_dir)
+        # # assert ckpt_path is not None
+        # saver.restore(sess, ckpt_path)
+    saver.save(sess, os.path.join(ckpt_dir, 'my-model'), global_step=0)
 
     training_steps = hparams['total_timesteps']
     print('training_steps is {}'.format(training_steps))

@@ -3,6 +3,8 @@
 import os
 import numpy as np
 import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
 def mse(pred, target):
     return tf.square(pred-target)/2.
