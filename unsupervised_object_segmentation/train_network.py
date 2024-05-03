@@ -36,10 +36,14 @@ if os.path.exists(_opencv_path):
 from object_segmentation_network import ObjectSegmentationNetwork, ObjectSegmentationNetworkPredict
 from batch_generator import BatchGenerator
 
-
+log_dir = '/content/logs'
+ckpt_dir = os.path.join(log_dir, 'ckpts', hparams['experiment_name'])
+video_dir = '/content/videos'
+os.makedirs(ckpt_dir, exist_ok=True)
+os.makedirs(video_dir, exist_ok=True)
 
 import gym
-hparams['num_actions'] = gym.make(hparams['env_id']).action_space.n
+hparams['num_actions'] = gym.make('PongNoFrameskip-v4').action_space.n
 
 if hparams['do_frame_prediction']:
     motion_model = ObjectSegmentationNetworkPredict(hparams=copy.deepcopy(hparams))
@@ -50,7 +54,6 @@ batch_generator = BatchGenerator(hparams=copy.deepcopy(hparams))
 
 # Setup for saving checkpoints.
 saver = tf.train.Saver(max_to_keep=3)
-ckpt_dir = os.path.join(hparams['base_dir'], 'ckpts', hparams['experiment_name'])
 print("ckpt_dir: ",ckpt_dir)
 try: os.makedirs(ckpt_dir)
 except: pass
@@ -66,10 +69,10 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
     merged_summaries = tf.summary.merge_all()
 
     train_writer = tf.summary.FileWriter(
-        os.path.join(hparams['base_dir'], 'logs', 'train_' + hparams['experiment_name']), sess.graph)
+        os.path.join(log_dir, 'logs', 'train_' + hparams['experiment_name']), sess.graph)
 
     val_writer = tf.summary.FileWriter(
-        os.path.join(hparams['base_dir'], 'logs', 'val_' + hparams['experiment_name']), sess.graph)
+        os.path.join(log_dir, 'logs', 'val_' + hparams['experiment_name']), sess.graph)
 
     sess.run(tf.global_variables_initializer())
 
@@ -142,20 +145,23 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
             if step % hparams['save_interval'] == 0:
                 saver.save(sess, os.path.join(ckpt_dir, 'my-model'), global_step=step)
 
-            if step % 50000 == 0:
-                try:
-                    experiment_name = os.path.basename(hparams['base_dir'])
-                    instance_name = hparams['experiment_name']
+            if step % 100 == 0:
+                video_src_dir = f"videos/{hparams['experiment_name']}"
+                if os.path.exists(video_src_dir):
+                    shutil.copytree(video_src_dir, os.path.join(video_dir, hparams['experiment_name']))
+                # try:
+                #     experiment_name = os.path.basename(hparams['base_dir'])
+                #     instance_name = hparams['experiment_name']
 
-                    for seperator in ['ckpts/', 'logs/train_', 'logs/val_']:
-                        src_dir = os.path.join(hparams['base_dir'], seperator+instance_name)
-                        dst_dir = 's3://irl-experiments/{}/{}'.format(experiment_name, seperator+instance_name)
+                #     for seperator in ['ckpts/', 'logs/train_', 'logs/val_']:
+                #         src_dir = os.path.join(hparams['base_dir'], seperator+instance_name)
+                #         dst_dir = 's3://irl-experiments/{}/{}'.format(experiment_name, seperator+instance_name)
 
-                        command = 'aws s3 sync {} {}'.format(src_dir, dst_dir)
-                        print(command)
-                        os.system(command)
-                except:
-                    pass
+                #         command = 'aws s3 sync {} {}'.format(src_dir, dst_dir)
+                #         print(command)
+                #         os.system(command)
+                # except:
+                #     pass
 
         except Exception as e:
             print('exception in train loop: {}'.format(e))
