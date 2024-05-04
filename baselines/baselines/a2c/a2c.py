@@ -15,7 +15,8 @@ from baselines.ppo2.ppo2 import safemean
 from collections import deque
 
 from tensorflow import losses
-
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 class Model(object):
 
     """

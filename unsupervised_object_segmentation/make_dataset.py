@@ -16,8 +16,8 @@ import gym
 if not '..' in sys.path:
     sys.path.insert(0, '..')
 
-from baselines.common.atari_wrappers import make_atari, wrap_deepmind
-from baselines.common import set_global_seeds
+from baselines.baselines.common.atari_wrappers import make_atari, wrap_deepmind
+from baselines.baselines.common import set_global_seeds
 
 def make_dataset(env_name):
     # Hyper-parameters
